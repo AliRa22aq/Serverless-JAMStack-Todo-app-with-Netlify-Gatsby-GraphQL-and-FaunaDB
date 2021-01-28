@@ -1,42 +1,41 @@
-const { ApolloServer, gql } = require('apollo-server-lambda')
+//https://github.com/apollographql/apollo-server/issues/1989
+
+const { ApolloServer, gql } = require("apollo-server-lambda");
+const faunadb = require('faunadb'),
+  q = faunadb.query;
+
 
 const typeDefs = gql`
   type Query {
-    hello: String
-    allAuthors: [Author!]
-    author(id: Int!): Author
-    authorByName(name: String!): Author
+    message: String
   }
-  type Author {
-    id: ID!
-    name: String!
-    married: Boolean!
-  }
-`
+`;
 
-const authors = [
-  { id: 1, name: 'Terry Pratchett', married: false },
-  { id: 2, name: 'Stephen King', married: true },
-  { id: 3, name: 'JK Rowling', married: false },
-]
 
+//fnAEAo3H5NACCMfVfQwTQTU6Eud19BijlajOv0XR
 const resolvers = {
   Query: {
-    hello: () => 'Hello, world!',
-    allAuthors: () => authors,
-    author: () => {},
-    authorByName: (root, args) => {
-      console.log('hihhihi', args.name)
-      return authors.find((author) => author.name === args.name) || 'NOTFOUND'
-    },
-  },
-}
+    message: async (parent, args, context) => {
+      try {
+        var client = new faunadb.Client({ secret: 'fnAEAGLZuCACDc-_n2VXHLj2Bf-uPA_jq1I9F8jw' });
+        let result = await client.query(
+
+          q.Get(q.Ref(q.Collection('posts'), '288859574834823686'))
+        );
+       
+        return result.data.detail;
+      } catch (err) {
+        return err.toString();
+      }
+    }
+  }
+};
 
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-})
+  playground: true,
+  introspection: true
+});
 
-const handler = server.createHandler()
-
-module.exports = { handler }
+exports.handler = server.createHandler();
