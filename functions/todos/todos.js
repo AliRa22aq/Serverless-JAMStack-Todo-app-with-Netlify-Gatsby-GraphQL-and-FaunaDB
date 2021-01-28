@@ -7,23 +7,42 @@ const faunadb = require('faunadb'),
 
 const typeDefs = gql`
   type Query {
-    message: String
+    todos: [Todo!]
+  }
+
+
+  
+  type Todo {
+    id: ID!
+    task: String!
+    status: Boolean!
   }
 `;
 
 
-//fnAEAo3H5NACCMfVfQwTQTU6Eud19BijlajOv0XR
+//
 const resolvers = {
   Query: {
-    message: async (parent, args, context) => {
+    todos: async (parent, args, context) => {
       try {
-        var client = new faunadb.Client({ secret: 'fnAEAGLZuCACDc-_n2VXHLj2Bf-uPA_jq1I9F8jw' });
-        let result = await client.query(
+        var client = new faunadb.Client({ secret: 'fnAEAo3H5NACCMfVfQwTQTU6Eud19BijlajOv0XR' });
+        let result = await client.query
+        (
 
-          q.Get(q.Ref(q.Collection('posts'), '288859574834823686'))
+          q.Map(
+            q.Paginate(q.Documents(q.Collection("todos"))),
+             q.Lambda(x => q.Get(x))
+             )      
+
         );
        
-        return result.data.detail;
+        return result.data.map(post => {
+          return {
+            id: post.ref.id,
+            task: post.data.task,
+            status: post.data.status
+          }
+        })
       } catch (err) {
         return err.toString();
       }
@@ -39,3 +58,5 @@ const server = new ApolloServer({
 });
 
 exports.handler = server.createHandler();
+
+
