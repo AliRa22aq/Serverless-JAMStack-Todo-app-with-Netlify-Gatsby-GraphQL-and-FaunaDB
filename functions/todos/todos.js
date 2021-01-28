@@ -9,13 +9,18 @@ const typeDefs = gql`
   type Query {
     todos: [Todo!]
   }
-
-
-  
   type Todo {
     id: ID!
     task: String!
     status: Boolean!
+  }
+
+  type Mutation {
+    addTodo(task: String!): Todo
+    deleteTodo(id: ID!): Todo
+
+    # deleteTodo(id: ID!): Todo
+    # updateTodo(status: Boolean! ,id:ID!,task:String!): Todo
   }
 `;
 
@@ -47,8 +52,47 @@ const resolvers = {
         return err.toString();
       }
     }
-  }
-};
+  },
+
+  Mutation: {
+
+    addTodo: async (_, { task }) => {
+      console.log(task)
+      try {
+        var client = new faunadb.Client({ secret: 'fnAEAo3H5NACCMfVfQwTQTU6Eud19BijlajOv0XR' });
+        let result = await client.query(
+          q.Create(
+            q.Collection('todos'),
+            {
+                data: { 
+                  task: task,
+                  status: true
+              } 
+            }
+          )
+        );
+        return result.ref.data;
+      } catch (err) {
+        return err.toString();
+      }
+    },
+
+    deleteTodo: async (_, { id }) => {
+      try {
+        var client = new faunadb.Client({ secret: 'fnAEAo3H5NACCMfVfQwTQTU6Eud19BijlajOv0XR' });
+        let result = await client.query(
+          q.Delete(
+            q.Ref(q.Collection('todos'), id)
+          )
+        ); 
+        return result.ref.data;
+      } catch (err) {
+        return err.toString();
+      }
+    }
+  },
+  
+}
 
 const server = new ApolloServer({
   typeDefs,
