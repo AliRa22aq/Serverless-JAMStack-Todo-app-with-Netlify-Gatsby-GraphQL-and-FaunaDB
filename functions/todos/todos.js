@@ -19,6 +19,7 @@ const typeDefs = gql`
     addTodo(task: String!): Todo
     deleteTodo(id: ID!): Todo
     updateTodo(status: Boolean! ,id:ID!,task:String!): Todo
+    updateCheck(status: Boolean! ,id:ID!,task:String!): Todo
 
   }
 `;
@@ -97,6 +98,21 @@ const resolvers = {
           q.Replace(
             q.Ref(q.Collection('todos'), id),
             { data: { task:task, status: true } },
+          )
+        );
+        return result.ref.data;
+      } catch (err) {
+        return err.toString();
+      }
+    },
+
+    updateCheck: async (_, {id,task, status }) => {
+      try {
+        var client = new faunadb.Client({ secret: 'fnAEAo3H5NACCMfVfQwTQTU6Eud19BijlajOv0XR' });
+        let result = await client.query(
+          q.Replace(
+            q.Ref(q.Collection('todos'), id),
+            { data: { task:task, status: status } },
           )
         );
         return result.ref.data;

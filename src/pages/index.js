@@ -38,12 +38,24 @@ mutation updateTodo($status: Boolean! , $id:ID!,$task: String!){
 }
 }`
 
+const CHECK_TODO = gql`
+mutation updateCheck($status: Boolean! , $id:ID!,$task: String!){
+  updateCheck(status: $status id:$id task: $task){
+    id    
+    status
+    task
+}
+}`
+
 
 export default function Home() {
 
+  ////// Fetch todos
 
   const { loading, error, data } = useQuery(GET_TODO);
   
+
+  ////// Add todo
   const [addTodo] = useMutation(ADD_TODO);
   const [add, setAdd] = useState()
   const handleAdd = (task) => {
@@ -55,6 +67,7 @@ export default function Home() {
     })
   }
 
+  ////// Delete todo
 
   const [deleteTodo] = useMutation(DELETE_TODOS);
   const handleDelete = (id) => {
@@ -66,9 +79,17 @@ export default function Home() {
     })
   }
 
+  ////// Update Todos
+
   const [updateTodo] = useMutation(UPDATE_TODO);
   const [updateTask, setUpdateTask] = useState()
   const [updateVal, setUpdateVal] = useState()
+
+  const handleUpdateVal = (task) => {
+    setUpdateVal(task)
+    setUpdateTask(task.task)
+  }
+
 
   const handleUpdate = (e) => {
     updateTodo({
@@ -81,11 +102,33 @@ export default function Home() {
     })
     setUpdateTask();
   }
+  
+  /////// Update Checks
 
-  const handleUpdateVal = (task) => {
-    setUpdateVal(task)
-    setUpdateTask(task.task)
+  const [updateCheck] = useMutation(CHECK_TODO);
+  const handleCheck = (e) => {
+    if (e.status) {
+      updateCheck({
+        variables: {
+          id: e.id,
+          task: e.task,
+          status: false
+        },
+        refetchQueries: [{ query: GET_TODO }]
+      })
+    } else {    
+      updateCheck({
+        variables: {
+          id: e.id,
+          task: e.task,
+          status: true
+        },
+        refetchQueries: [{ query: GET_TODO }]
+    })
   }
+ 
+  }
+  //const [check, setcheck] = useState(false);
   
 
   return (
@@ -101,9 +144,14 @@ export default function Home() {
           !updateTask?
           data && (data.todos.map((post)=> {
             return (
-                <div>     
-                <div key={post.id}>{post.task} | <button onClick={() => {handleDelete(post.id)}}>X</button> </div> 
-                <div> <button onClick={()=> {handleUpdateVal({task: post.task, id: post.id, status: post.status })}}> Update </button> </div> 
+                <div key={post.id}>     
+                
+                <span> {post.task} </span> 
+                <button onClick={() => {handleCheck({task: post.task, id: post.id, status: post.status})}}> {post.status? 'Check': 'Checked'} </button>
+                <button onClick={()=> {handleUpdateVal({task: post.task, id: post.id, status: post.status })}}> Update </button>
+                <button onClick={() => {handleDelete(post.id)}}> X </button>
+                
+
                 </div>
           )})):
                 <div>
