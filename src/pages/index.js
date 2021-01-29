@@ -2,9 +2,16 @@
 import React, {useState} from "react"
 import { useQuery, useMutation } from '@apollo/client';
 import gql from 'graphql-tag';
+import DeleteSharpIcon from '@material-ui/icons/DeleteSharp';
+import UpdateSharpIcon from '@material-ui/icons/UpdateSharp';
+import Button from '@material-ui/core/Button';
+import Grid from '@material-ui/core/Grid';
+
+import DoneIcon from '@material-ui/icons/Done';
+import TextField from '@material-ui/core/TextField';
+import './main.css'
 
 
-// This query is executed at run time by Apollo.
 const GET_TODO = gql`
 {
   todos  {
@@ -132,34 +139,58 @@ export default function Home() {
   
 
   return (
-      <div>
-        <input  onChange={(e) => {setAdd(e.target.value)}} />
-        <button onClick={ () => {handleAdd(add)}}> Add </button>
+      <div className="container">
 
-        <h2>Data Received from Apollo Client at runtime from Serverless Function:</h2>
+
+        <h2>Todo App</h2>
         {loading && <p>Loading Client Side Querry...</p>}
         {error && <p>Error: ${error.message}</p>}
 
+
+
+        <TextField fullWidth variant='outlined' onChange={(e) => {setAdd(e.target.value)}} />
+        <Button variant="outlined" onClick={ () => {handleAdd(add)}}> Add </Button>
+        < br />
+        < br />
+        < br />
+
         {
-          !updateTask?
-          data && (data.todos.map((post)=> {
+          !updateTask? 
+
+          data && (data.todos.map((post, ind)=> {
+
             return (
-                <div key={post.id}>     
-                
-                <span> {post.task} </span> 
-                <button onClick={() => {handleCheck({task: post.task, id: post.id, status: post.status})}}> {post.status? 'Check': 'Checked'} </button>
-                <button onClick={()=> {handleUpdateVal({task: post.task, id: post.id, status: post.status })}}> Update </button>
-                <button onClick={() => {handleDelete(post.id)}}> X </button>
+                <div key={post.id}>
+
+                  
+        <Grid container spacing={2}> 
+        <Grid item xs={1}>{ind + 1} </Grid>
+        <Grid item xs={7}>{post.task} </Grid>
+        <Grid item xs={1}><Button onClick={() => {handleCheck({task: post.task, id: post.id, status: post.status})}}> {post.status? <DoneIcon fontSize='small' />: <DoneIcon fontSize='small' color="secondary" />} </Button></Grid>
+        <Grid item xs={1}><Button onClick={()=> {handleUpdateVal({task: post.task, id: post.id, status: post.status })}}> < UpdateSharpIcon fontSize='small'/> </Button></Grid>
+        <Grid item xs={1}><Button onClick={() => {handleDelete(post.id)}}> < DeleteSharpIcon fontSize='small' />  </Button></Grid>
+        
+</Grid>
+                {/* <span> {post.task} </span> 
+                <Button onClick={() => {handleCheck({task: post.task, id: post.id, status: post.status})}}> {post.status? <DoneIcon fontSize='small' />: <DoneIcon fontSize='small' color="secondary" />} </Button>
+                <Button onClick={()=> {handleUpdateVal({task: post.task, id: post.id, status: post.status })}}> < UpdateSharpIcon fontSize='small'/> </Button>
+                <Button onClick={() => {handleDelete(post.id)}}> < DeleteSharpIcon fontSize='small' />  </Button> */}
                 
 
-                </div>
-          )})):
+                
+                </div> 
+          )
+
+          })):
                 <div>
-                <input  value={updateTask} onChange={(e) => {setUpdateTask(e.target.value)}} />
-                <div> <button onClick={() => {handleUpdate({ task: updateTask, id: updateVal.id, status: updateVal.status })}}> done Update </button> </div> 
+                <TextField  value={updateTask} onChange={(e) => {setUpdateTask(e.target.value)}} />
+                <div> <Button variant="outlined" onClick={() => {handleUpdate({ task: updateTask, id: updateVal.id, status: updateVal.status })}}> Done Update </Button> </div> 
                 </div>
+
 
               }
+
+
 
       </div>
   );
